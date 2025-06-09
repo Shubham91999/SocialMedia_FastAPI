@@ -40,3 +40,16 @@ def create_post(post: Post):
     my_posts.append(post_dict)
     return {"data": post_dict}
 
+def find_post(id):
+    for p in my_posts:
+        if p['id'] == id:
+            return p
+
+# {id} is a path parameter 
+@app.get("/posts/{id}")
+def get_post(id: int):
+    print(id)
+    post = find_post(id)
+    return {"post_detail": post}
+
+
