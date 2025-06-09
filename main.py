@@ -1,6 +1,7 @@
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 from typing import Optional
+from random import randrange
 
 app = FastAPI()
 
@@ -11,23 +12,31 @@ class Post(BaseModel):
     published: bool = True
     rating: Optional[int] = None
 
+my_posts = [{"id": 1, "title": "My favorite Car", "content": "I like BMW"}, {"id": 2, "title": "My favorite food", "content": "I like Pizza"}]
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to my API"}
 
 @app.get("/posts")
 def get_posts():
-    return {"Post1": "Data for Post1", "Post2": "Data for Post2"}
+    return {"data": my_posts}
 
 # @app.post("/createpost")
 # def create_post(payload: dict = Body(...)):
 #     print(payload)
 #     return {"NewPost": f"Title: {payload['title']} Content: {payload['content']}"} 
 
-@app.post("/createpost")
-def create_post(post: Post):
-    print(post)  # printing data in BaseModel format
-    print(post.model_dump())  # dict() method is deprecated, so using model_dump() -> printing result in form of dictionary
-    return {"data": post}
+# @app.post("/posts")
+# def create_post(post: Post):
+#     print(post)  # printing data in BaseModel format
+#     print(post.model_dump())  # dict() method is deprecated, so using model_dump() -> printing result in form of dictionary
+#     return {"data": post}
 
+@app.post("/posts")
+def create_post(post: Post):
+    post_dict = post.dict()
+    post_dict['id'] = randrange(0, 10000000)
+    my_posts.append(post_dict)
+    return {"data": post_dict}
 
