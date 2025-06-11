@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from random import randrange
 
+# Application instance used while starting dev server
 app = FastAPI()
 
 # Defined Pydantic model to validate the input schema from frontend
