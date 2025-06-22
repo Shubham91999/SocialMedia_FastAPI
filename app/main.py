@@ -2,6 +2,13 @@ from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+import psycopg2
+from dotenv import load_dotenv
+import os
+# Importing because psycopg2 alone doesn't return column names
+from psycopg2.extras import RealDictCursor
+import time
+
 
 # Application instance used while starting dev server
 app = FastAPI()
@@ -12,6 +19,23 @@ class Post(BaseModel):
     content: str
     published: bool = True
     rating: Optional[int] = None
+load_dotenv()
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+while True:
+    try:
+        conn = psycopg2.connect(host='localhost', database='SocialMedia_FastAPI', user=DB_USER, password=DB_PASSWORD, cursor_factory=RealDictCursor)
+
+        cursor = conn.cursor()
+        print("Database Connection is successful")
+        break
+    except Exception as e:
+        print("DB connection failed")
+        print(e)
+        print("Trying again in 2 seconds.")
+        time.sleep(2)
+
 
 my_posts = [{"id": 1, "title": "My favorite Car", "content": "I like BMW"}, {"id": 2, "title": "My favorite food", "content": "I like Pizza"}]
 
