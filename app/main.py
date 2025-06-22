@@ -45,7 +45,10 @@ async def root():
 
 @app.get("/posts")
 def get_posts():
-    return {"data": my_posts}
+    cursor.execute("""SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    print(posts)
+    return {"data": posts}
 
 # @app.post("/createpost")
 # def create_post(payload: dict = Body(...)):
