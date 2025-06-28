@@ -9,6 +9,15 @@ import os
 from psycopg2.extras import RealDictCursor
 import time
 
+# Importing models and engine for db connectivity
+from . import models
+from .database import engine, get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+# Importing models to create db tables
+models.Base.metadata.create_all(bind=engine) # type: ignore
+
 
 # Application instance used while starting dev server
 app = FastAPI()
@@ -49,6 +58,13 @@ def get_posts():
     posts = cursor.fetchall()
     print(posts)
     return {"data": posts}
+
+# Testing models.py
+@app.get("/sqlalchemy")
+def test_posts(db: Session = Depends(get_db)):
+    return {"status": "Success"}
+
+
 
 # @app.post("/createpost")
 # def create_post(payload: dict = Body(...)):
