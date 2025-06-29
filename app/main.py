@@ -18,7 +18,6 @@ from fastapi import Depends
 # Importing models to create db tables
 models.Base.metadata.create_all(bind=engine) # type: ignore
 
-
 # Application instance used while starting dev server
 app = FastAPI()
 
@@ -53,18 +52,19 @@ async def root():
     return {"message": "Welcome to my API"}
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute("""SELECT * FROM posts""")
-    posts = cursor.fetchall()
-    print(posts)
+def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    # print(posts)
+    posts = db.query(models.Post).all()
+
     return {"data": posts}
 
 # Testing models.py
 @app.get("/sqlalchemy")
 def test_posts(db: Session = Depends(get_db)):
-    return {"status": "Success"}
-
-
+    posts = db.query(models.Post).all()
+    return {"data": posts}
 
 # @app.post("/createpost")
 # def create_post(payload: dict = Body(...)):
