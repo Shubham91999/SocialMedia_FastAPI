@@ -126,31 +126,42 @@ def find_index_post(id):
             return i
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
+def delete_post(id: int, db: Session = Depends(get_db)):
     # index = find_index_post(id)
-    cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id,)))
-    deleted_post = cursor.fetchone()
-    conn.commit()
+    # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id,)))
+    # deleted_post = cursor.fetchone()
+    # conn.commit()
 
-    if deleted_post is None:
+    deleted_post = db.query(models.Post).filter(models.Post.id == id) # type: ignore
+
+    if deleted_post.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist.")
+    
+    deleted_post.delete(synchronize_session=False)
+    db.commit()
+
     # my_posts.pop(index)
     return {"Message": f"Post {id} was deleted successfully."}
 
 
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post):
+def update_post(id: int, post: Post, db: Session = Depends(get_db)):
     # index = find_index_post(id)
-    cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
-    updated_post = cursor.fetchone()
-    conn.commit()
+    # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
+    # updated_post = cursor.fetchone()
+    # conn.commit()
 
-    if updated_post == None:
+    updated_post = db.query(models.Post).filter(models.Post.id == id) # type: ignore
+
+    if updated_post.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist.")
     # post_dict = post.dict()
     # post_dict['id'] = id
     # my_posts[index] = post_dict
-    return {"data": updated_post}
+
+    updated_post.update(post.dict(), synchronize_session=False)
+    db.commit()
+    return {"data": updated_post.first()}
 
 
 
