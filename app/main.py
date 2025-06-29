@@ -8,6 +8,7 @@ import os
 # Importing because psycopg2 alone doesn't return column names
 from psycopg2.extras import RealDictCursor
 import time
+from .schemas import Post
 
 # Importing models and engine for db connectivity
 from . import models
@@ -20,13 +21,6 @@ models.Base.metadata.create_all(bind=engine) # type: ignore
 
 # Application instance used while starting dev server
 app = FastAPI()
-
-# Defined Pydantic model to validate the input schema from frontend
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-    # rating: Optional[int] = None
 
 load_dotenv()
 DB_USER = os.getenv("DB_USER")
