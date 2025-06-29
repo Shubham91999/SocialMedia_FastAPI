@@ -27,6 +27,7 @@ class Post(BaseModel):
     content: str
     published: bool = True
     rating: Optional[int] = None
+
 load_dotenv()
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -78,15 +79,22 @@ def test_posts(db: Session = Depends(get_db)):
 #     return {"data": post}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post):
+def create_post(post: Post, db: Session = Depends(get_db)):
     # post_dict = post.dict()
     # post_dict['id'] = randrange(0, 10000000)
     # my_posts.append(post_dict)
 
-    cursor.execute("""INSERT INTO posts(title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
-    post_dict = cursor.fetchone()
-    conn.commit()
-    return {"data": post_dict}
+    # cursor.execute("""INSERT INTO posts(title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    # post_dict = cursor.fetchone()
+    # conn.commit()
+
+    new_post = models.Post(title=post.title,  # type: ignore
+                           content=post.content,  # type: ignore
+                           published=post.published) # type: ignore
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return {"data": new_post}
 
 def find_post(id):
     for p in my_posts:
