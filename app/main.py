@@ -26,7 +26,7 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
+    # rating: Optional[int] = None
 
 load_dotenv()
 DB_USER = os.getenv("DB_USER")
@@ -88,9 +88,11 @@ def create_post(post: Post, db: Session = Depends(get_db)):
     # post_dict = cursor.fetchone()
     # conn.commit()
 
-    new_post = models.Post(title=post.title,  # type: ignore
-                           content=post.content,  # type: ignore
-                           published=post.published) # type: ignore
+    # new_post = models.Post(title=post.title,  # type: ignore
+    #                        content=post.content,  # type: ignore
+    #                        published=post.published) # type: ignore
+
+    new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -103,11 +105,15 @@ def find_post(id):
 
 # {id} is a path parameter 
 @app.get("/posts/{id}")
-def get_post(id: int):
+def get_post(id: int, db: Session = Depends(get_db)):
     # print(id)
-    cursor.execute("""SELECT * from posts WHERE id = %s""", (str(id),)) # Adding , to make input as tuple, second argument in execute should be a tuple not string
-    post = cursor.fetchone()
+    # cursor.execute("""SELECT * from posts WHERE id = %s""", (str(id),)) # Adding , to make input as tuple, second argument in execute should be a tuple not string
+    # post = cursor.fetchone()
     # post = find_post(id)
+
+    post = db.query(models.Post).filter(models.Post.id == id).first() # type: ignore # Instead of all(), first() is used for resource optimization
+    print(Post)
+
     if not post:
         # respone.status_code = status.HTTP_404_NOT_FOUND
         # return {"Message": f"Post with id {id} not found."}
