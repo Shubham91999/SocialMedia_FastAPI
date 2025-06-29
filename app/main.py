@@ -1,6 +1,6 @@
 from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from random import randrange
 import psycopg2
 from dotenv import load_dotenv
@@ -8,7 +8,7 @@ import os
 # Importing because psycopg2 alone doesn't return column names
 from psycopg2.extras import RealDictCursor
 import time
-from .schemas import Post
+from .schemas import PostCreate, Post
 
 # Importing models and engine for db connectivity
 from . import models
@@ -46,20 +46,20 @@ my_posts = [{"id": 1, "title": "My favorite Car", "content": "I like BMW"}, {"id
 async def root():
     return {"message": "Welcome to my API"}
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[Post])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
     posts = db.query(models.Post).all()
 
-    return {"data": posts}
+    return posts
 
 # Testing models.py
-@app.get("/sqlalchemy")
-def test_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-    return {"data": posts}
+# @app.get("/sqlalchemy")
+# def test_posts(db: Session = Depends(get_db)):
+#     posts = db.query(models.Post).all()
+#     return {"data": posts}
 
 # @app.post("/createpost")
 # def create_post(payload: dict = Body(...)):
@@ -72,8 +72,8 @@ def test_posts(db: Session = Depends(get_db)):
 #     print(post.model_dump())  # dict() method is deprecated, so using model_dump() -> printing result in form of dictionary
 #     return {"data": post}
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post, db: Session = Depends(get_db)):
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=Post)
+def create_post(post: PostCreate, db: Session = Depends(get_db)):
     # post_dict = post.dict()
     # post_dict['id'] = randrange(0, 10000000)
     # my_posts.append(post_dict)
@@ -90,7 +90,7 @@ def create_post(post: Post, db: Session = Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 def find_post(id):
     for p in my_posts:
@@ -98,7 +98,7 @@ def find_post(id):
             return p
 
 # {id} is a path parameter 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     # print(id)
     # cursor.execute("""SELECT * from posts WHERE id = %s""", (str(id),)) # Adding , to make input as tuple, second argument in execute should be a tuple not string
@@ -106,13 +106,13 @@ def get_post(id: int, db: Session = Depends(get_db)):
     # post = find_post(id)
 
     post = db.query(models.Post).filter(models.Post.id == id).first() # type: ignore # Instead of all(), first() is used for resource optimization
-    print(Post)
+    print(post)
 
     if not post:
         # respone.status_code = status.HTTP_404_NOT_FOUND
         # return {"Message": f"Post with id {id} not found."}
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} not found.")
-    return {"post_detail": post}
+    return post
 
 def find_index_post(id):
     for i, p in enumerate(my_posts):
@@ -138,8 +138,8 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return {"Message": f"Post {id} was deleted successfully."}
 
 
-@app.put("/posts/{id}")
-def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+@app.put("/posts/{id}", response_model=Post)
+def update_post(id: int, post: PostCreate, db: Session = Depends(get_db)):
     # index = find_index_post(id)
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
     # updated_post = cursor.fetchone()
@@ -155,7 +155,7 @@ def update_post(id: int, post: Post, db: Session = Depends(get_db)):
 
     updated_post.update(post.dict(), synchronize_session=False)
     db.commit()
-    return {"data": updated_post.first()}
+    return updated_post.first()
 
 
 
