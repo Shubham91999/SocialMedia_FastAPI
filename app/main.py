@@ -8,7 +8,8 @@ import os
 # Importing because psycopg2 alone doesn't return column names
 from psycopg2.extras import RealDictCursor
 import time
-from .schemas import PostCreate, Post, UserCreate
+from .schemas import PostCreate, Post, UserCreate, UserOut
+from . import models, schemas, utils
 
 # Importing models and engine for db connectivity
 from . import models
@@ -161,8 +162,13 @@ def update_post(id: int, post: PostCreate, db: Session = Depends(get_db)):
 # ************************************* User Routes ****************************************
 
 
-@app.post("/users", status_code=status.HTTP_201_CREATED)
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserOut)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    # hashing the password
+    hashed_password = utils.hash(user.password)
+    user.password = hashed_password
+
+
     new_user = models.User(**user.dict())  # Unpacking the user object from request into dictionary
     db.add(new_user)
     db.commit()

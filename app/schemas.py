@@ -20,8 +20,17 @@ class Post(PostBase):
         # orm_mode = True
         from_attributes = True
 
+# Used to validate request body before User Creation
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+# Used for sending reponse after User Creations
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
 
+    class Config:
+        # orm_mode = True
+        from_attributes = True
