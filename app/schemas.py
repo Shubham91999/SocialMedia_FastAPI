@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 # Defined Pydantic model to validate the input schema from frontend
@@ -19,4 +19,9 @@ class Post(PostBase):
     class Config:
         # orm_mode = True
         from_attributes = True
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
 
