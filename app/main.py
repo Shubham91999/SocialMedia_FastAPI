@@ -17,7 +17,7 @@ from .database import engine, get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from .routers import post, user
+from .routers import post, user, auth
 
 # Importing models to create db tables
 models.Base.metadata.create_all(bind=engine) # type: ignore
@@ -27,6 +27,7 @@ app = FastAPI()
 
 app.include_router(post.router)
 app.include_router(user.router)
+app.include_router(auth.router)
 
 load_dotenv()
 DB_USER = os.getenv("DB_USER")
