@@ -25,7 +25,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
-# Used for sending reponse after User Creations
+# Used for sending reponse after User Creation
 class UserOut(BaseModel):
     id: int
     email: EmailStr
