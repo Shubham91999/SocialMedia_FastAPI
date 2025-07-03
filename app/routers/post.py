@@ -6,9 +6,7 @@ from ..database import get_db
 from .. import models
 from fastapi import status, HTTPException
 
-router = APIRouter(
-    prefix="/users"
-)
+router = APIRouter(prefix="/posts", tags=['Posts'])
 
 
 @router.get("/", response_model=List[Post])
