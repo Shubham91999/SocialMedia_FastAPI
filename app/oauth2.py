@@ -1,4 +1,5 @@
 from jose import JWTError, jwt
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 
 #SECRET_KEY
