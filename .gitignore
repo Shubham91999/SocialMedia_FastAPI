@@ -2,3 +2,4 @@ notes.txt
 venv
 .env
 database.py
+__pycache__
