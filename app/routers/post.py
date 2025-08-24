@@ -5,12 +5,13 @@ from ..schemas import PostCreate, Post
 from ..database import get_db
 from .. import models
 from fastapi import status, HTTPException
+from .. import oauth2
 
 router = APIRouter(prefix="/posts", tags=['Posts'])
 
 
 @router.get("/", response_model=List[Post])
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
@@ -36,7 +37,7 @@ def get_posts(db: Session = Depends(get_db)):
 #     return {"data": post}
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=Post)
-def create_post(post: PostCreate, db: Session = Depends(get_db)):
+def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # post_dict = post.dict()
     # post_dict['id'] = randrange(0, 10000000)
     # my_posts.append(post_dict)
@@ -58,7 +59,7 @@ def create_post(post: PostCreate, db: Session = Depends(get_db)):
 
 # {id} is a path parameter 
 @router.get("/{id}", response_model=Post)
-def get_post(id: int, db: Session = Depends(get_db)):
+def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # print(id)
     # cursor.execute("""SELECT * from posts WHERE id = %s""", (str(id),)) # Adding , to make input as tuple, second argument in execute should be a tuple not string
     # post = cursor.fetchone()

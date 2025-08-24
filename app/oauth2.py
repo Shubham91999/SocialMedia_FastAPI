@@ -1,6 +1,6 @@
 from jose import JWTError, jwt
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
 from . import schemas
@@ -12,7 +12,7 @@ from fastapi.security import OAuth2PasswordBearer
 #Expiration_Time
 load_dotenv()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
@@ -23,7 +23,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def create_access_token(data: dict):
     to_encode = data.copy()
     # Setting the expiration timer
-    expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     # Adding expire to to_encode dictionary
     to_encode.update({"exp": expire})
 
@@ -36,12 +36,19 @@ def create_access_token(data: dict):
 # Function to verify the access sent by user with every API request
 def verify_access_token(token: str, credentials_exception):
     try:
+        print(token)
+        # In oauth2.py - add this debug
+        # print(f"SECRET_KEY loaded: {SECRET_KEY}")
+        if not SECRET_KEY:
+            raise ValueError("SECRET_KEY environment variable not set")
+        
         # Decode function takes token, secret key and algorithm to decode and give back the payload
-        payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM) # type: ignore
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM]) # type: ignore
+        print(payload)
         
         # Accessing only User ID
         id = payload.get("user_id")
-
+        print(id)
         # If null return exception
         if id is None:
             raise credentials_exception
@@ -50,6 +57,8 @@ def verify_access_token(token: str, credentials_exception):
 
     except JWTError:
         raise credentials_exception
+    
+    return token_data
     
 # This will be passed as dependency in every API route to authenticate user
 def get_current_user(token: str = Depends(oauth2_scheme)):
