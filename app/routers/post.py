@@ -15,8 +15,12 @@ def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
-    print(current_user.email)
-    posts = db.query(models.Post).all()
+    print(current_user.id)
+    
+    # To filter posts based on owner id, display posts created by logged in user
+    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+
+    posts = db.query(models.Post).all() 
 
     return posts
 
@@ -65,13 +69,14 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: models.User =
     # post = cursor.fetchone()
     # post = find_post(id)
 
-    post = db.query(models.Post).filter(models.Post.id == id).first() # type: ignore # Instead of all(), first() is used for resource optimization
-    print(post)
+    post_query = db.query(models.Post).filter(models.Post.id == id) # type: ignore # Instead of all(), first() is used for resource optimization
+    post = post_query.first()
 
     if not post:
         # respone.status_code = status.HTTP_404_NOT_FOUND
         # return {"Message": f"Post with id {id} not found."}
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} not found.")
+    
     return post
 
 
