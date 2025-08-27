@@ -43,14 +43,14 @@ def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: m
     # post_dict['id'] = randrange(0, 10000000)
     # my_posts.append(post_dict)
 
-    # cursor.execute("""INSERT INTO posts(title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    # cursor.execute("""INSERT INTO po~sts(title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
     # post_dict = cursor.fetchone()
     # conn.commit()
 
     # new_post = models.Post(title=post.title,  # type: ignore
     #                        content=post.content,  # type: ignore
     #                        published=post.published) # type: ignore
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(owner_id=current_user.id, **post.dict()) # type: ignore
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -82,12 +82,17 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: models.Use
     # deleted_post = cursor.fetchone()
     # conn.commit()
 
-    deleted_post = db.query(models.Post).filter(models.Post.id == id) # type: ignore
+    deleted_query = db.query(models.Post).filter(models.Post.id == id) # type: ignore
 
-    if deleted_post.first() is None:
+    post = deleted_query.first()
+
+    if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist.")
     
-    deleted_post.delete(synchronize_session=False)
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not Authorized to perform requested action")
+
+    deleted_query.delete(synchronize_session=False)
     db.commit()
 
     # my_posts.pop(index)
@@ -95,20 +100,25 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: models.Use
 
 
 @router.put("/{id}", response_model=Post)
-def update_post(id: int, post: PostCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+def update_post(id: int, update_post: PostCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # index = find_index_post(id)
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
     # updated_post = cursor.fetchone()
     # conn.commit()
 
-    updated_post = db.query(models.Post).filter(models.Post.id == id) # type: ignore
+    post_query = db.query(models.Post).filter(models.Post.id == id) # type: ignore
 
-    if updated_post.first() == None:
+    post = post_query.first()
+
+    if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist.")
     # post_dict = post.dict()
     # post_dict['id'] = id
     # my_posts[index] = post_dict
 
-    updated_post.update(post.dict(), synchronize_session=False)
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not Authorized to perform requested action")
+
+    post_query.update(update_post.dict(), synchronize_session=False)
     db.commit()
-    return updated_post.first()
+    return post_query.first()
