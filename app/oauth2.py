@@ -6,6 +6,9 @@ import os
 from . import schemas
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from . import database
+from sqlalchemy.orm import Session 
+from . import models
 
 #SECRET_KEY
 #Algorithm
@@ -48,7 +51,7 @@ def verify_access_token(token: str, credentials_exception):
         
         # Accessing only User ID
         id = payload.get("user_id")
-        print(id)
+        # print(id)
         # If null return exception
         if id is None:
             raise credentials_exception
@@ -61,10 +64,14 @@ def verify_access_token(token: str, credentials_exception):
     return token_data
     
 # This will be passed as dependency in every API route to authenticate user
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Could not validate credentials", headers={"www-Authenticate": "Bearer"})
 
-    return verify_access_token(token, credentials_exception)
+    token_data = verify_access_token(token, credentials_exception)
+
+    user = db.query(models.User).filter(models.User.id == token_data.id).first()  # type: ignore
+
+    return user
         
 
 

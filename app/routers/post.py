@@ -11,10 +11,11 @@ router = APIRouter(prefix="/posts", tags=['Posts'])
 
 
 @router.get("/", response_model=List[Post])
-def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
+    print(current_user.email)
     posts = db.query(models.Post).all()
 
     return posts
@@ -37,7 +38,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
 #     return {"data": post}
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=Post)
-def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # post_dict = post.dict()
     # post_dict['id'] = randrange(0, 10000000)
     # my_posts.append(post_dict)
@@ -49,7 +50,6 @@ def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: i
     # new_post = models.Post(title=post.title,  # type: ignore
     #                        content=post.content,  # type: ignore
     #                        published=post.published) # type: ignore
-
     new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
@@ -59,7 +59,7 @@ def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: i
 
 # {id} is a path parameter 
 @router.get("/{id}", response_model=Post)
-def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def get_post(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # print(id)
     # cursor.execute("""SELECT * from posts WHERE id = %s""", (str(id),)) # Adding , to make input as tuple, second argument in execute should be a tuple not string
     # post = cursor.fetchone()
@@ -76,7 +76,7 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # index = find_index_post(id)
     # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id,)))
     # deleted_post = cursor.fetchone()
@@ -95,7 +95,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=Post)
-def update_post(id: int, post: PostCreate, db: Session = Depends(get_db)):
+def update_post(id: int, post: PostCreate, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # index = find_index_post(id)
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id)))
     # updated_post = cursor.fetchone()
