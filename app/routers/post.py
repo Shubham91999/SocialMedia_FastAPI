@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from fastapi import Depends, APIRouter
 from ..schemas import PostCreate, Post
@@ -7,20 +7,31 @@ from .. import models
 from fastapi import status, HTTPException
 from .. import oauth2
 
+# Ensure models.Post is defined in app/models.py as a SQLAlchemy model, for example:
+# class Post(Base):
+#     __tablename__ = "posts"
+#     id = Column(Integer, primary_key=True, index=True)
+#     title = Column(String, index=True)
+#     content = Column(String, index=True)
+#     published = Column(Boolean, default=True)
+#     owner_id = Column(Integer, ForeignKey("users.id"))
+
+
 router = APIRouter(prefix="/posts", tags=['Posts'])
 
 
 @router.get("/", response_model=List[Post])
-def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
-    print(current_user.id)
-    
+    print(limit)
+
+
     # To filter posts based on owner id, display posts created by logged in user
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
 
-    posts = db.query(models.Post).all() 
+    posts = db.query(models.Post).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all()  # type: ignore
 
     return posts
 
