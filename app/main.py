@@ -1,22 +1,10 @@
-from fastapi import Body, FastAPI, Response, status, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
-from random import randrange
-import psycopg2
+from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
-# Importing because psycopg2 alone doesn't return column names
-from psycopg2.extras import RealDictCursor
-import time
-from .schemas import PostCreate, Post, UserCreate, UserOut
-from . import models, schemas, utils
-
+from . import models
 # Importing models and engine for db connectivity
 from . import models
 from .database import engine, get_db
-from sqlalchemy.orm import Session
-from fastapi import Depends
-
 from .routers import post, user, auth
 
 # Importing models to create db tables
@@ -29,9 +17,32 @@ app.include_router(post.router)
 app.include_router(user.router)
 app.include_router(auth.router)
 
-load_dotenv()
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+
+
+
+# *********************************
+"""
+from pydantic import BaseModel
+from typing import Optional, List
+import psycopg2
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from random import randrange
+from . import schemas, utils
+
+# Importing because psycopg2 alone doesn't return column names
+from psycopg2.extras import RealDictCursor
+import time
+from .schemas import PostCreate, Post, UserCreate, UserOut
+
+from fastapi import Response, status, HTTPException, Body
+"""
+# *********************************
+
+# load_dotenv()
+# DB_USER = os.getenv("DB_USER")
+# DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 # while True:
 #     try:
