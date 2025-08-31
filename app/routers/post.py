@@ -1,10 +1,10 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from fastapi import Depends, APIRouter
-from ..schemas import PostCreate, Post
+from sqlalchemy import func
+from fastapi import Depends, APIRouter, status, HTTPException
+from ..schemas import PostCreate, Post, PostOut
 from ..database import get_db
 from .. import models
-from fastapi import status, HTTPException
 from .. import oauth2
 
 # Ensure models.Post is defined in app/models.py as a SQLAlchemy model, for example:
@@ -20,7 +20,8 @@ from .. import oauth2
 router = APIRouter(prefix="/posts", tags=['Posts'])
 
 
-@router.get("/", response_model=List[Post])
+# @router.get("/", response_model=List[Post])
+@router.get("/", response_model=List[PostOut])
 def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
@@ -33,7 +34,11 @@ def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends
 
     posts = db.query(models.Post).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all()  # type: ignore
 
-    return posts
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all() # type: ignore
+
+
+
+    return results
 
 # Testing models.py
 # @app.get("/sqlalchemy")
