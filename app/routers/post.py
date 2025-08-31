@@ -32,11 +32,9 @@ def get_posts(db: Session = Depends(get_db), current_user: models.User = Depends
     # To filter posts based on owner id, display posts created by logged in user
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
 
-    posts = db.query(models.Post).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all()  # type: ignore
+    # posts = db.query(models.Post).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all()  # type: ignore
 
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all() # type: ignore
-
-
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all() # type: ignore
 
     return results
 
