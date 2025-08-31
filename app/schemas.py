@@ -1,6 +1,6 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, conint
+from typing import Optional, Annotated
 
 # Used to validate request body before User Creation
 class UserCreate(BaseModel):
@@ -49,3 +49,8 @@ class Post(PostBase):
     class Config:
         # orm_mode = True
         from_attributes = True
+
+# Schema for Vote
+class Vote(BaseModel):
+    post_id: int
+    dir: Annotated[int, conint(le=1)]

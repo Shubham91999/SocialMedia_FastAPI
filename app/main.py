@@ -5,7 +5,7 @@ from . import models
 # Importing models and engine for db connectivity
 from . import models
 from .database import engine, get_db
-from .routers import post, user, auth
+from .routers import post, user, auth, vote
 
 # Importing models to create db tables
 models.Base.metadata.create_all(bind=engine) # type: ignore
@@ -16,6 +16,7 @@ app = FastAPI()
 app.include_router(post.router)
 app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(vote.router)
 
 
 
