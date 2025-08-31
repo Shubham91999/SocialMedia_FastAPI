@@ -9,24 +9,22 @@ from fastapi.security import OAuth2PasswordBearer
 from . import database
 from sqlalchemy.orm import Session 
 from . import models
+from .config import settings
 
-#SECRET_KEY
-#Algorithm
-#Expiration_Time
 load_dotenv()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 # Functon to create JWT Token upon User Authentication
 def create_access_token(data: dict):
     to_encode = data.copy()
     # Setting the expiration timer
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES or 30))
     # Adding expire to to_encode dictionary
     to_encode.update({"exp": expire})
 
