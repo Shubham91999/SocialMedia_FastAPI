@@ -76,14 +76,14 @@ def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: m
 
 
 # {id} is a path parameter 
-@router.get("/{id}", response_model=Post)
+@router.get("/{id}", response_model=PostOut)
 def get_post(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
     # print(id)
     # cursor.execute("""SELECT * from posts WHERE id = %s""", (str(id),)) # Adding , to make input as tuple, second argument in execute should be a tuple not string
     # post = cursor.fetchone()
     # post = find_post(id)
 
-    post_query = db.query(models.Post).filter(models.Post.id == id) # type: ignore # Instead of all(), first() is used for resource optimization
+    post_query = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id) # type: ignore # Instead of all(), first() is used for resource optimization
     post = post_query.first()
 
     if not post:
